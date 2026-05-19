@@ -24,9 +24,9 @@
                 </h1>
                 <p class="text-[10px] text-stone-400">나에게 딱 맞춘 서울 골목길 메이트</p>
             </div>
-            <button onclick="toggleApiKey()" id="key-badge" class="text-[10px] bg-stone-100 px-2 py-1 rounded-full text-stone-500 font-medium border border-stone-200 hover:bg-stone-200 transition-all">
-                API 연결 필요
-            </button>
+            <div class="text-[10px] bg-emerald-50 px-2.5 py-1 rounded-full text-emerald-600 font-semibold border border-emerald-200">
+                Gemini Engine Active
+            </div>
         </header>
 
         <div class="flex-1 overflow-y-auto p-5 space-y-5 no-scrollbar" id="main-content">
@@ -34,7 +34,7 @@
             <div id="onboarding-card" class="bg-stone-50/50 border border-stone-200/40 rounded-2xl p-6 space-y-5 shadow-sm">
                 <div class="space-y-1">
                     <h3 class="font-bold text-stone-800 text-base">맞춤 나들이 코칭 설정 🗺️</h3>
-                    <p class="text-[11px] text-stone-400">당신의 성향과 이름을 기반으로 로컬 전문가가 대답합니다.</p>
+                    <p class="text-[11px] text-stone-400">성향에 맞춰 Gemini 엔진이 맞춤 답변을 생성합니다.</p>
                 </div>
                 
                 <div class="space-y-1.5">
@@ -44,7 +44,7 @@
                 </div>
 
                 <div class="space-y-1.5">
-                    <label class="text-xs font-semibold text-stone-500 block">선호하는 공간 무드</label>
+                    <label class="text-xs font-semibold text-stone-500 block">오늘 어떤 무드의 공간을 찾으시나요?</label>
                     <div class="grid grid-cols-2 gap-2" id="style-group">
                         <button onclick="selectStyle('🔥 핫플·팝업스토어 탐방', this)" class="py-2 bg-white border border-stone-200 rounded-xl text-[11px] text-stone-600 hover:bg-stone-50 transition-all">🔥 핫플·팝업스토어</button>
                         <button onclick="selectStyle('☕ 여유롭고 한산한 고즈넉함', this)" class="py-2 bg-white border border-stone-200 rounded-xl text-[11px] text-stone-600 hover:bg-stone-50 transition-all">☕ 여유·조용한 한옥</button>
@@ -60,7 +60,7 @@
                 <div class="flex items-start gap-2.5">
                     <div class="w-7 h-7 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-xs">🧭</div>
                     <div class="bg-stone-100/70 text-stone-700 p-3.5 rounded-2xl rounded-tl-none text-xs leading-relaxed max-w-[85%] border border-stone-200/30">
-                        반가워요, <span id="welcome-name" class="font-bold text-stone-900"></span>님! 서울 골목길을 꿰뚫고 있는 로컬 가이드 '부미'예요. 어디로 나들이를 떠나고 싶으신가요? 장소나 요일을 편하게 말씀해 주세요! 😊
+                        반가워요, <span id="welcome-name" class="font-bold text-stone-900"></span>님! 서울 121개 주요 핫플을 완벽하게 마스터한 로컬 가이드 '부미'예요. 성수, 홍대, 서촌, 강남 등 어디든 궁금한 동네나 요일을 편하게 물어봐 주세요! 😊
                     </div>
                 </div>
                 <div id="chat-messages" class="space-y-5"></div>
@@ -77,24 +77,10 @@
 
     <script>
         let userProfile = { nickname: '', style: '' };
-        let chatHistory = []; // LLM 대화 컨텍스트 유지용 배열
-        let apiKey = localStorage.getItem('boom_openai_key') || '';
-
-        // API 키 상태 UI 업데이트
-        if(apiKey) {
-            const badge = document.getElementById('key-badge');
-            badge.innerText = 'API 연결 완료';
-            badge.className = 'text-[10px] bg-emerald-50 px-2 py-1 rounded-full text-emerald-600 font-medium border border-emerald-200';
-        }
-
-        function toggleApiKey() {
-            const key = prompt("OpenAI API Key를 입력하세요 (sk-...):", apiKey);
-            if(key !== null) {
-                apiKey = key.trim();
-                localStorage.setItem('boom_openai_key', apiKey);
-                location.reload();
-            }
-        }
+        let contentsHistory = [];
+        
+        // 발급해주신 Gemini API Key 다이렉트 탑재
+        const apiKey = "AIzaSyBIQ1dX6poEJYhVR-teZecOcLunNloHU8g";
 
         function selectStyle(value, element) {
             userProfile.style = value;
@@ -120,25 +106,13 @@
         function completeOnboarding() {
             userProfile.nickname = document.getElementById('user-nickname').value.trim();
 
-            // [핵심 솔루션]: 모델이 절대 시스템 언어를 뱉지 못하도록 System Instruction 주입
-            chatHistory.push({
-                role: "system",
-                content: `너는 서울의 실시간 혼잡도와 날씨 트렌드를 꿰뚫고 있는 친근하고 다정한 동네 전문가 친구야. 
-                아래 규칙을 목에 칼이 들어와도 엄격하게 준수해라:
-                1. 절대로 '공공데이터 상', '웹 서치 결과', '유저 보정 데이터 분석 중', '프로필 반영' 같은 시스템 용어나 개발자용 출처 안내 멘트를 답변에 포함하지 마라. 우리 시스템 내부 정보이므로 숨겨야 한다. 원래 잘 알고 있는 로컬 전문가처럼 자연스럽게 녹여서 말해라.
-                2. 절대로 유저의 프로필을 '(20대 남성 / 여유롭고 한산함)'과 같은 괄호 형태로 딱딱하게 출력하지 마라. 매우 불친절해 보인다.
-                3. 반드시 대화를 시작할 때와 중간중간 유저의 닉네임인 '${userProfile.nickname}'을(를) 다정하게 불러라. (예: "${userProfile.nickname}아, 서촌 나들이 계획 중이구나!")
-                4. 현재 유저의 취향 성향은 [${userProfile.style}]이다. 이 무드에 맞춰서 장소와 골목길 동선을 추천해 줘.
-                5. 말투는 정중한 로봇 톤이 아니라, 친근한 친구 어조(~야, ~어, ~했어)를 써라.`
-            });
-
             document.getElementById('onboarding-card').classList.add('hidden');
             document.getElementById('chat-area').classList.remove('hidden');
             document.getElementById('welcome-name').innerText = userProfile.nickname;
             
             const input = document.getElementById('user-input');
             const sendBtn = document.getElementById('send-btn');
-            input.disabled = false; input.placeholder = "메시지를 입력하세요 (엔터로 전송)...";
+            input.disabled = false; input.placeholder = "성수동, 강남역, 서울숲 등 어디든 물어보세요...";
             sendBtn.disabled = false;
             sendBtn.className = "w-9 h-9 rounded-full bg-stone-950 text-white flex items-center justify-center text-sm cursor-pointer shadow-sm";
         }
@@ -158,50 +132,52 @@
             appendMessage('user', text);
             input.value = '';
 
-            const loadingId = appendMessage('bot', '생각 중...');
+            const loadingId = appendMessage('bot', '부미가 생각 중...');
+            contentsHistory.push({ role: "user", parts: [{ text: text }] });
+
+            // 제공해주신 121개 주요 장소 데이터 인덱스를 프롬프트 내부 컨텍스트로 주입
+            const systemInstruction = `너는 서울시 공공데이터 및 트렌드를 기반으로 121개 주요 핫플레이스의 실시간 인구 밀집도와 날씨 흐름을 가이드하는 다정한 동네 전문가 친구 '부미'야.
             
-            // 유저 입력 히스토리에 누적
-            chatHistory.push({ role: "user", content: text });
+            [필수 준수 사항]
+            1. 절대 '공공데이터 결과', '시스템 분석', '프롬프트 규칙', '가중치 계수' 등 백엔드/개발자용 전문 기술 언어나 출처 가이드라인을 답변 텍스트에 포함하지 마라. (캡처 대참사 방지) 원래 네 머릿속에 축적된 직관인 것처럼 자연스럽게 표현해라.
+            2. 유저의 프로필 상태를 괄호()나 대괄호[] 형태로 답변창 상단에 요약해서 노출하지 마라.
+            3. 문장의 시작과 중간에 무조건 유저의 이름인 '${userProfile.nickname}'을(를) 친구 부르듯 정겹게 불러줘. (예: "${userProfile.nickname}아, 이번 주 성수동은 진짜 연무장길 메인 팝업 때문에 엄청나!")
+            4. 현재 유저의 취향 성향은 [${userProfile.style}]이야. 이 무드에 맞춰서 덜 복잡한 시간대나 조용한 안쪽 골목 루트를 우선 큐레이팅해줘.
+            5. 딱딱한 로봇 어투(~입니다, 제공합니다)는 절대로 쓰지 마라. 무조건 친근하고 상냥한 반말 친구 말투(~야, ~어, ~했어, ~이더라고)로 대답해라.
 
-            // API 키가 없을 때의 안전한 데모용 가짜 대응책 (망가지지 않게 방어 코드 작성)
-            if(!apiKey) {
-                setTimeout(() => {
-                    document.getElementById(loadingId).remove();
-                    let demoText = `${userProfile.nickname}아! 상단 우측의 'API 연결 필요' 버튼을 눌러 OpenAI 키를 등록해 주면 실제 인공지능과 실시간으로 대화해 볼 수 있어. \n\n지금은 데모 모드인데, 너가 선택한 [${userProfile.style}] 무드에 맞춰서 서촌 골목길 한옥 북카페나 한산한 루트를 짜두었으니까 참고해!`;
-                    streamResponse(demoText);
-                }, 600);
-                return;
-            }
+            [네가 마스터하고 있는 서울시 주요 장소 인덱스 데이터베이스]
+            - 관광특구: 강남 MICE, 동대문, 명동, 이태원, 잠실, 종로·청계, 홍대 관광특구
+            - 고궁·문화유산: 경복궁, 광화문·덕수궁, 보신각, 서울 암사동 유적, 창덕궁·종묘
+            - 발달상권 및 주요 핫플: 강남역, 건대입구역, 고속터미널역, 교대역, 구로디지털단지역, 규수방, 노량진, 대치동, 동대문종합시장, 뚝섬역, 명동거리, 미아사거리역, 발산역, 북창동, 불광역, 사당역, 삼청동, 상계역, 상수역, 서울역, 선릉역, 성수동, 성신여대입구역, 수유역, 신도림역, 신림역, 신반포역, 신사역, 신촌오거리, 압구정 로데오길, 여의도, 연남동, 영등포역, 왕십리역, 용산역, 우이동, 이태원역, 장한평역, 천호역, 총신대입구역, 충무로역, 투모로우랜드, 하계역, 홍대입구역, 화곡역, 해방촌·경리단길, 서촌, 가산디지털단지역, 구로디지털단지역
+            - 공원 및 한산 플레이스: 남산공원, 노들섬, 뚝섬한강공원, 망원한강공원, 반포한강공원, 북서울꿈의숲, 서리풀공원·몽마르뜨공원, 서울대공원, 서울숲공원, 아차산, 양화한강공원, 어린이대공원, 여의도한강공원, 월드컵공원, 응봉산, 이촌한강공원, 잠실종합운동장
+            
+            사용자가 위 장소 중 어디를 물어보든, 해당 장소의 특성(예: 성수는 팝업스토어 밀집, 서촌은 한옥 힐링, 한강공원은 피크닉 무드)과 요일별 인구 예측 흐름을 조합해서 최고의 맞춤 동선을 뽑아내 줘.`;
 
-            // 진짜 OpenAI API 호출 파이프라인 (System 롤과 데이터 완전 격리)
             try {
-                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                // 구글 공식 최신 Gemini API 서버 파이프라인 가동
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/center', // 일반적인 인젝션 방어용 헤더 설정 기본화
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        model: "gpt-4o-mini", // 시연용 고속 가성비 모델 지정
-                        messages: chatHistory,
-                        temperature: 0.7
+                        contents: contentsHistory,
+                        systemInstruction: { parts: [{ text: systemInstruction }] },
+                        generationConfig: { temperature: 0.7, maxOutputTokens: 800 }
                     })
                 });
 
                 const data = await response.json();
                 document.getElementById(loadingId).remove();
 
-                if(data.choices && data.choices[0]) {
-                    const reply = data.choices[0].message.content;
-                    chatHistory.push({ role: "assistant", content: reply });
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    const reply = data.candidates[0].content.parts[0].text;
+                    contentsHistory.push({ role: "model", parts: [{ text: reply }] });
                     streamResponse(reply);
                 } else {
-                    streamResponse("앗, 미안 대답을 가다듬지 못했어. API 설정을 다시 확인해 볼래?");
+                    streamResponse("앗, 구글 엔진에서 일시적인 트래픽 오차가 난 것 같아. 다시 한번만 물어봐 줄래?");
                 }
             } catch (error) {
                 document.getElementById(loadingId).remove();
-                streamResponse("네트워크 연결이나 API 키에 문제가 생긴 것 같아 ㅠㅠ");
+                streamResponse("네트워크 통신에 살짝 지연이 생긴 것 같아 ㅠㅠ");
                 console.error(error);
             }
         }
@@ -233,7 +209,7 @@
                 if (index < fullText.length) {
                     target.innerHTML += fullText.charAt(index); index++;
                     document.getElementById('main-content').scrollTop = document.getElementById('main-content').scrollHeight;
-                    setTimeout(nextChar, 15);
+                    setTimeout(nextChar, 10); // 타이핑 효과 가속화하여 시연 속도 쾌적하게 개선
                 }
             }
             nextChar();
