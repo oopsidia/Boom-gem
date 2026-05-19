@@ -3,16 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOM! - 언제 가면 안 붐빌까?</title>
+    <title>BOOM! - 내 손안의 서울 로컬 가이드</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
-        body { 
-            font-family: 'Pretendard', sans-serif; 
-            background-color: #f7f6f3; /* 따뜻하고 은은한 미색 배경 */
-        }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f7f6f3; }
         .chat-bubble { max-width: 85%; }
-        /* 스크롤바 숨기기 (모바일 앱 느낌 극대화) */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -24,13 +20,13 @@
         <header class="bg-white/80 backdrop-blur-md p-4 text-center border-b border-stone-100 flex justify-between items-center px-6">
             <div class="text-left">
                 <h1 class="text-lg font-bold text-stone-800 tracking-tight flex items-center gap-1">
-                    <span>BOOM!</span>
-                    <span class="text-sm font-normal text-stone-400">💥</span>
+                    <span>BOOM!</span><span class="text-sm font-normal text-stone-400">💥</span>
                 </h1>
-                <p class="text-[10px] text-stone-400">내 손안의 서울 로컬 가이드</p>
+                <p class="text-[10px] text-stone-400">데이터 보정 시스템 가동 중</p>
             </div>
-            <div class="text-[10px] bg-stone-50 px-2 py-1 rounded-full text-stone-500 border border-stone-100 cursor-pointer" onclick="toggleApiKey()">
-                System: <span id="key-status" class="text-stone-400 font-semibold">Ready</span>
+            <div class="text-[10px] bg-stone-50 px-2 py-1 rounded-full text-stone-600 border border-stone-100 font-mono">
+                서촌 δ: <span id="delta-seochon" class="font-bold text-amber-600">0.0</span> | 
+                성수 δ: <span id="delta-seongsu" class="font-bold text-amber-600">0.0</span>
             </div>
         </header>
 
@@ -39,54 +35,12 @@
             <div id="onboarding-card" class="bg-stone-50/50 border border-stone-200/40 rounded-2xl p-6 space-y-5 shadow-sm">
                 <div class="space-y-1">
                     <h3 class="font-bold text-stone-800 text-base">맞춤 코스를 짜드릴게요 🗺️</h3>
-                    <p class="text-xs text-stone-400">선택사항은 비워두고 넘어가셔도 괜찮아요.</p>
                 </div>
-                
                 <div class="space-y-1.5">
-                    <label class="text-xs font-semibold text-stone-500 block">뭐라고 불러드릴까요? <span class="text-stone-400">(필수)</span></label>
+                    <label class="text-xs font-semibold text-stone-500 block">닉네임</label>
                     <input type="text" id="user-nickname" oninput="validateOnboarding()" placeholder="예: 민지, 준호" 
                            class="w-full bg-white border border-stone-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-stone-400 transition-all">
                 </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-semibold text-stone-500 block">성별</label>
-                        <select id="user-gender" class="w-full bg-white border border-stone-200 rounded-xl px-2 py-2.5 text-xs text-stone-600 focus:outline-none focus:border-stone-400">
-                            <option value="선택안함">선택안함</option>
-                            <option value="여성">여성</option>
-                            <option value="남성">남성</option>
-                        </select>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-semibold text-stone-500 block">나이대</label>
-                        <select id="user-age" class="w-full bg-white border border-stone-200 rounded-xl px-2 py-2.5 text-xs text-stone-600 focus:outline-none focus:border-stone-400">
-                            <option value="선택안함">선택안함</option>
-                            <option value="10대">10대</option>
-                            <option value="20대">20대</option>
-                            <option value="30대">30대</option>
-                            <option value="40대 이상">40대+</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="space-y-1.5">
-                    <label class="text-xs font-semibold text-stone-500 block">선호하는 나들이 무드</label>
-                    <div class="grid grid-cols-2 gap-2" id="style-group">
-                        <button onclick="selectStyle('핫플 탐방', this)" class="py-2.5 bg-white border border-stone-200 rounded-xl text-xs text-stone-600 hover:bg-stone-50 transition-all">🔥 핫플·팝업스토어</button>
-                        <button onclick="selectStyle('여유롭고 한산함', this)" class="py-2.5 bg-white border border-stone-200 rounded-xl text-xs text-stone-600 hover:bg-stone-50 transition-all">☕ 여유·조용한 한옥</button>
-                    </div>
-                </div>
-
-                <div class="space-y-1.5">
-                    <label class="text-xs font-semibold text-stone-500 block">누구와 함께 가시나요?</label>
-                    <select id="user-companion" class="w-full bg-white border border-stone-200 rounded-xl px-2 py-2.5 text-xs text-stone-600 focus:outline-none focus:border-stone-400">
-                        <option value="혼자">혼자만의 힐링</option>
-                        <option value="연인">연인과 데이트</option>
-                        <option value="친구">친구들과 왁자지껄</option>
-                        <option value="가족">가족과 함께</option>
-                    </select>
-                </div>
-
                 <button onclick="completeOnboarding()" id="start-btn" class="w-full py-3 bg-stone-300 text-white rounded-xl text-xs font-bold opacity-60 cursor-not-allowed transition-all" disabled>
                     BOOM! 시작하기
                 </button>
@@ -95,133 +49,97 @@
             <div id="chat-area" class="hidden space-y-5">
                 <div class="flex items-start gap-2.5">
                     <div class="w-7 h-7 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-xs">🧭</div>
-                    <div class="bg-stone-100/70 text-stone-700 p-3.5 rounded-2xl rounded-tl-none text-xs leading-relaxed shadow-sm max-w-[85%] border border-stone-200/30">
-                        반가워요, <span id="welcome-name" class="font-bold text-stone-900"></span>님! 서울 골목골목을 제일 잘 아는 로컬 친구 '부미'예요. 어디로 나들이를 떠나고 싶으신가요? 장소나 요일을 편하게 말씀해 주세요! 😊
+                    <div class="bg-stone-100/70 text-stone-700 p-3.5 rounded-2xl rounded-tl-none text-xs leading-relaxed max-w-[85%] border border-stone-200/30">
+                        반가워요, <span id="welcome-name" class="font-bold text-stone-900"></span>님! 요즘 핫플 상황이나 날씨, 다 꿰뚫고 있으니 편하게 물어봐요. <br><br><span class="text-stone-400 italic">💡 팁: "저번에 서촌 가니까 사람 진짜 많더라"처럼 다녀왔던 후기를 말해줘도 좋아요!</span>
                     </div>
                 </div>
                 <div id="chat-messages" class="space-y-5"></div>
             </div>
-
-        </div>
-
-        <div id="feedback-bar" class="hidden bg-stone-50 p-3 border-t border-stone-100 space-y-2 animate-fade-in">
-            <div class="flex justify-between items-center px-1">
-                <span class="text-[10px] text-stone-400 font-medium">📍 체감 기록: <span id="current-place" class="text-stone-600 font-bold">서촌</span></span>
-                <span class="text-[10px] text-stone-400">다음 예측 정밀도 향상 중</span>
-            </div>
-            <div class="flex gap-2 text-xs">
-                <button onclick="submitFeedback(-0.5)" class="flex-1 bg-white border border-stone-200 py-2 rounded-xl text-stone-600 hover:bg-stone-50 font-medium text-[11px] shadow-sm">🍃 한산했어</button>
-                <button onclick="submitFeedback(0.0)" class="flex-1 bg-white border border-stone-200 py-2 rounded-xl text-stone-600 hover:bg-stone-50 font-medium text-[11px] shadow-sm">👍 딱 좋았어</button>
-                <button onclick="submitFeedback(0.5)" class="flex-1 bg-white border border-stone-200 py-2 rounded-xl text-stone-600 hover:bg-stone-50 font-medium text-[11px] shadow-sm">🔥 엄청 붐벼</button>
-            </div>
         </div>
 
         <footer class="p-4 border-t border-stone-100 bg-white flex gap-2 items-center">
-            <input type="text" id="user-input" placeholder="먼저 정보를 입력해 주세요" disabled
-                   onkeydown="handleKeyDown(event)"
+            <input type="text" id="user-input" placeholder="먼저 정보를 입력해 주세요" disabled onkeydown="handleKeyDown(event)"
                    class="flex-1 bg-stone-50 border border-stone-200/70 rounded-full px-4 py-2.5 text-xs focus:outline-none focus:border-stone-400 focus:bg-white transition-all text-stone-800">
             <button onclick="sendMessage()" id="send-btn" disabled
-                    class="w-9 h-9 rounded-full bg-stone-100 text-stone-400 flex items-center justify-center transition-all cursor-not-allowed text-sm">
-                ➔
-            </button>
+                    class="w-9 h-9 rounded-full bg-stone-100 text-stone-400 flex items-center justify-center text-sm">➔</button>
         </footer>
-
     </div>
 
     <script>
-        // 글로벌 데이터 상태 관리
-        let userProfile = { nickname: '', gender: '', age: '', style: '선택안함', companion: '' };
-        let apiKey = localStorage.getItem('boom_api_key') || '';
+        let userProfile = { nickname: '' };
         let currentDetectedPlace = '서촌';
+        
+        // 로컬스토리지 보정계수 초기화
+        let deltaData = JSON.parse(localStorage.getItem('boom_delta') || '{"서촌": 0.0, "성수": 0.0}');
 
-        if(apiKey) {
-            document.getElementById('key-status').innerText = 'Connected';
-            document.getElementById('key-status').className = 'text-stone-600 font-semibold';
+        function updateDeltaDisplay() {
+            document.getElementById('delta-seochon').innerText = (deltaData['서촌'] || 0.0).toFixed(1);
+            document.getElementById('delta-seongsu').innerText = (deltaData['성수'] || 0.0).toFixed(1);
         }
 
-        // 스타일 그룹 다중/단일 선택 핸들러
-        function selectStyle(value, element) {
-            userProfile.style = value;
-            const container = document.getElementById('style-group');
-            container.querySelectorAll('button').forEach(btn => {
-                btn.className = "py-2.5 bg-white border border-stone-200 rounded-xl text-xs text-stone-600 hover:bg-stone-50 transition-all";
-            });
-            element.className = "py-2.5 bg-stone-900 border border-stone-900 rounded-xl text-xs text-white font-medium transition-all shadow-sm";
-            validateOnboarding();
-        }
-
-        // 필수조건 검증 (닉네임 글자수 확인)
         function validateOnboarding() {
             const nickname = document.getElementById('user-nickname').value.trim();
             const startBtn = document.getElementById('start-btn');
-            
-            if(nickname.length >= 1) {
-                startBtn.disabled = false;
+            startBtn.disabled = nickname.length < 1;
+            if(!startBtn.disabled) {
                 startBtn.className = "w-full py-3 bg-stone-950 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-stone-800 transition-all cursor-pointer";
             } else {
-                startBtn.disabled = true;
                 startBtn.className = "w-full py-3 bg-stone-300 text-white rounded-xl text-xs font-bold opacity-60 cursor-not-allowed transition-all";
             }
         }
 
-        // 온보딩 마쳐서 대화방 열기
         function completeOnboarding() {
             userProfile.nickname = document.getElementById('user-nickname').value.trim();
-            userProfile.gender = document.getElementById('user-gender').value;
-            userProfile.age = document.getElementById('user-age').value;
-            userProfile.companion = document.getElementById('user-companion').value;
-
             document.getElementById('onboarding-card').classList.add('hidden');
             document.getElementById('chat-area').classList.remove('hidden');
             document.getElementById('welcome-name').innerText = userProfile.nickname;
             
-            // 입력창 활성화
             const input = document.getElementById('user-input');
             const sendBtn = document.getElementById('send-btn');
-            input.disabled = false;
-            input.placeholder = "어디로 갈지, 언제 갈지 편하게 물어보세요...";
+            input.disabled = false; input.placeholder = "메시지를 입력하세요...";
             sendBtn.disabled = false;
-            sendBtn.className = "w-9 h-9 rounded-full bg-stone-950 text-white flex items-center justify-center hover:bg-stone-800 transition-all cursor-pointer shadow-sm";
+            sendBtn.className = "w-9 h-9 rounded-full bg-stone-950 text-white flex items-center justify-center text-sm cursor-pointer shadow-sm";
+            
+            updateDeltaDisplay();
         }
 
-        // 엔터키 클릭 시 자동 전송 UX 기능 반영
         function handleKeyDown(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault(); // 줄바꿈 방지
-                sendMessage();
-            }
+            if (event.key === 'Enter') { event.preventDefault(); sendMessage(); }
         }
 
-        // 메시지 핸들링 시스템
-        async function sendMessage() {
+        // 메시지 전송 및 분석
+        function sendMessage() {
             const input = document.getElementById('user-input');
             const text = input.value.trim();
             if(!text) return;
 
-            // 유저 말풍선 렌더
             appendMessage('user', text);
             input.value = '';
 
-            // 텍스트 기반 핵심 플레이스 감지 (발표용 장소 트리거)
-            if(text.includes('성수')) currentDetectedPlace = '성수';
-            else if(text.includes('홍대')) currentDetectedPlace = '홍대';
-            else currentDetectedPlace = '서촌';
-            
-            document.getElementById('feedback-bar').classList.add('hidden'); // 피드백 바 임시 숨김
-            
-            // 대기중 로딩 인디케이터
             const loadingId = appendMessage('bot', '생각 중...');
 
-            setTimeout(async () => {
+            setTimeout(() => {
+                document.getElementById(loadingId).remove();
+                
                 let responseText = "";
                 
-                if (apiKey) {
-                    responseText = await callOpenAI(text);
+                // [핵심 시연 트리거 1]: 유저가 과거 경험 피드백을 자연어로 던졌을 때 자동 인지 및 계수 조정
+                if(text.includes('서촌') && (text.includes('터지더라') || text.includes('사람 많았어') || text.includes('붐비더라'))) {
+                    // 내부 보정 계수 증가
+                    deltaData['서촌'] += 0.5;
+                    localStorage.setItem('boom_delta', JSON.stringify(deltaData));
+                    updateDeltaDisplay();
+                    
+                    responseText = `아, 진짜? 서촌에 사람 엄청 많았구나! 안 그래도 실시간 데이터 분석해 보니까 요새 서촌 유동인구가 심상치 않더라고. ${userProfile.nickname}이가 준 생생한 후기 고마워! 내 데이터베이스에 바로 채워 넣었어. 📊\n\n그럼 혹시 다음번에는 조금 널널한 숨은 한옥 골목길 쪽으로 루트를 짜줄까, 아니면 이번엔 아예 다른 한산한 동네를 추천해 줄까?`;
+                } 
+                // [핵심 시연 트리거 2]: 일반적인 질문
+                else if(text.includes('서촌')) {
+                    let crowdText = deltaData['서촌'] > 0 ? "최근에 다녀온 사람들이 꽤 북적였다고 하니까 참고해!" : "요즘 가기 딱 여유롭고 호젓한 무드야.";
+                    responseText = `${userProfile.nickname}아, 다음 주 서촌 가기엔 수요일 오후 3시 이후가 골든타임이야. 목요일도 한산하긴 한데 늦게 비 소식이 있거든. ${crowdText} 참, 수요일부턴 근처에서 작은 플리마켓도 열리니까 슬쩍 구경 가봐!`;
                 } else {
-                    responseText = getMockResponse(text);
+                    responseText = `응응, 무슨 말인지 이해했어! 발표 시연을 위해 "저번에 서촌 가니까 사람 진짜 터지더라" 고 입력해봐. 챗봇이 자연어에서 피드백을 추출해 상단의 [서촌 δ] 값을 실시간으로 올리는 멋진 모습을 보여줄 수 있어!`;
                 }
 
-                document.getElementById(loadingId).remove();
                 streamResponse(responseText);
             }, 800);
         }
@@ -234,71 +152,29 @@
             wrapper.className = sender === 'user' ? 'flex justify-end' : 'flex items-start gap-2.5';
 
             if(sender === 'user') {
-                wrapper.innerHTML = `
-                    <div class="chat-bubble bg-stone-900 text-white px-3.5 py-2.5 rounded-2xl rounded-tr-none text-xs leading-relaxed shadow-sm">
-                        ${text}
-                    </div>
-                `;
+                wrapper.innerHTML = `<div class="chat-bubble bg-stone-900 text-white px-3.5 py-2.5 rounded-2xl rounded-tr-none text-xs leading-relaxed shadow-sm">${text}</div>`;
             } else {
                 wrapper.innerHTML = `
-                    <div class="w-7 h-7 rounded-full bg-stone-50 border border-stone-200/60 flex items-center justify-center text-xs shrink-0 shadow-2xs">🧭</div>
-                    <div class="chat-bubble bg-stone-50 border border-stone-100 text-stone-700 px-3.5 py-2.5 rounded-2xl rounded-tl-none text-xs leading-relaxed shadow-xs whitespace-pre-line" id="body-${msgId}">
-                        ${text}
-                    </div>
-                `;
+                    <div class="w-7 h-7 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center text-xs shrink-0">🧭</div>
+                    <div class="chat-bubble bg-stone-50 border border-stone-100 text-stone-700 px-3.5 py-2.5 rounded-2xl rounded-tl-none text-xs leading-relaxed whitespace-pre-line" id="body-${msgId}">${text}</div>`;
             }
             container.appendChild(wrapper);
             document.getElementById('main-content').scrollTop = document.getElementById('main-content').scrollHeight;
             return msgId;
         }
 
-        // 타이핑 효과 스트리밍
         function streamResponse(fullText) {
             const msgId = appendMessage('bot', '');
             const target = document.getElementById(`body-${msgId}`);
             let index = 0;
-            
             function nextChar() {
                 if (index < fullText.length) {
-                    target.innerHTML += fullText.charAt(index);
-                    index++;
+                    target.innerHTML += fullText.charAt(index); index++;
                     document.getElementById('main-content').scrollTop = document.getElementById('main-content').scrollHeight;
                     setTimeout(nextChar, 20);
-                } else {
-                    // 완료되면 피드백 노출
-                    document.getElementById('current-place').innerText = currentDetectedPlace;
-                    document.getElementById('feedback-bar').classList.remove('hidden');
                 }
             }
             nextChar();
-        }
-
-        // 고도화 요청 반영: 출처/시스템 정보가 사라진 '로컬 전문가 친구' 모드 시뮬레이션 데이터
-        function getMockResponse(text) {
-            const nickname = userProfile.nickname;
-            
-            if(text.includes('서촌')) {
-                return `${nickname}아, 서촌 나들이라니 정말 설레겠다! 서촌을 가기에 다음 주 중에 가장 좋은 날은 수요일이야. \n\n사실 목요일이 거리 자체는 제일 여유로울 것 같긴 한데, 오후 늦게 비 소식이 살짝 잡혀 있더라고. 우산 챙기는 것보다 맑을 때 걷는 게 좋잖아? \n\n수요일 오후 3시쯤 되면 점심 인파가 싹 빠지면서 골목길이 아주 아늑하고 한산해져. 그때 근처에 숨어있는 예쁜 한옥 북카페에 자리를 잡아보는 걸 추천해. 조용히 책 읽거나 멍 때리기 딱 좋거든. ☕\n\n참, 그리고 수요일부터 마침 통인시장 옆 골목에서 소소하게 플리마켓도 새로 오픈한다고 하니까, 아기자기한 소품 구경하는 걸 좋아하면 슬쩍 동선에 묶어봐도 괜찮을 거야.\n\n이번에 ${userProfile.companion} 가나 본데, 혹시 가고 싶었던 카페 분위기나 좋아하는 음식 종류가 따로 있어? 더 마음에 드는 스팟들로 골라줄 테니 편하게 말해줘! 😆`;
-            } else if(text.includes('성수')) {
-                return `${nickname}아! 성수동 오늘 가려는 거구나? 지금 성수 메인 연무장길 쪽은 평소보다 팝업 대기 줄이 조금 길어져서 북적거리는 상태야. \n\n만약 가보려고 눈여겨본 팝업이 있다면 대기 시스템을 미리 걸어두는 게 팁이야. 만약 너무 복잡한 게 싫다면 뚝섬역이나 서울숲 초입 골목으로 살짝 틀어봐. 그쪽이 훨씬 한산하고 분위기 좋은 편집숍들이 많거든!\n\n오늘 점심이나 저녁 먹을 만한 숨은 맛집 리스트 매칭해줄까? 어떤 분위기를 원해?`;
-            } else {
-                return `안녕 ${nickname}아! 지금 '${text}' 인근 분위기랑 트렌드를 쭉 훑어보고 있어. 발표 시연을 위해서 질문에 '서촌'이나 '성수'를 넣어서 다시 물어봐 줄래? 동선에 딱 맞는 기가 막힌 추천 결과를 바로 보여줄게!`;
-            }
-        }
-
-        // 숨겨진 API 세팅 (시연 도중 비밀 설정 가능)
-        function toggleApiKey() {
-            const key = prompt("OpenAI API Key 설정 (공백 시 시뮬레이션 모드):", apiKey);
-            if(key !== null) {
-                apiKey = key;
-                localStorage.setItem('boom_api_key', key);
-                location.reload();
-            }
-        }
-
-        // 피드백 반영 얼럿
-        function submitFeedback(val) {
-            alert(`피드백이 기록되었습니다. 다음번 ${currentDetectedPlace} 질답 시 유저 체감 오차를 계산하여 맞춤 반영합니다.`);
         }
     </script>
 </body>
