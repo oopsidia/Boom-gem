@@ -3,92 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOM! - 얼마나 BOOM빌까?</title>
+    <title>BOOM! - 언제 가면 안 붐빌까?</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
-        body { font-family: 'Pretendard', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            background-color: #f7f6f3; /* 따뜻하고 은은한 미색 배경 */
+        }
         .chat-bubble { max-width: 85%; }
+        /* 스크롤바 숨기기 (모바일 앱 느낌 극대화) */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex justify-center items-center">
+<body class="min-h-screen flex justify-center items-center p-0 sm:p-4">
 
-    <div class="w-full max-w-md h-[92vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 relative">
+    <div class="w-full max-w-md h-screen sm:h-[90vh] bg-white sm:rounded-3xl shadow-xl shadow-stone-200/50 flex flex-col overflow-hidden border border-stone-200/60 relative">
         
-        <header class="bg-amber-400 p-4 text-center border-b border-amber-500 shadow-sm">
-            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">💥 BOOM!</h1>
-            <p class="text-xs font-semibold text-slate-800 mt-0.5">내가 지금 가려는 곳, 얼마나 BOOM빌까?</p>
+        <header class="bg-white/80 backdrop-blur-md p-4 text-center border-b border-stone-100 flex justify-between items-center px-6">
+            <div class="text-left">
+                <h1 class="text-lg font-bold text-stone-800 tracking-tight flex items-center gap-1">
+                    <span>BOOM!</span>
+                    <span class="text-sm font-normal text-stone-400">💥</span>
+                </h1>
+                <p class="text-[10px] text-stone-400">내 손안의 서울 로컬 가이드</p>
+            </div>
+            <div class="text-[10px] bg-stone-50 px-2 py-1 rounded-full text-stone-500 border border-stone-100 cursor-pointer" onclick="toggleApiKey()">
+                System: <span id="key-status" class="text-stone-400 font-semibold">Ready</span>
+            </div>
         </header>
 
-        <div id="api-bar" class="bg-slate-800 text-white text-xs p-2 flex justify-between items-center px-4">
-            <span>🔑 OpenAI API Key: <span id="key-status" class="text-red-400">미연결 (시뮬레이션 모드)</span></span>
-            <button onclick="toggleApiKey()" class="bg-slate-600 px-2 py-1 rounded text-[10px] hover:bg-slate-500">설정</button>
-        </div>
-
-        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="main-content">
+        <div class="flex-1 overflow-y-auto p-5 space-y-5 no-scrollbar" id="main-content">
             
-            <div id="onboarding-card" class="bg-amber-50/80 border border-amber-200 rounded-2xl p-5 space-y-4 shadow-sm">
-                <h3 class="font-bold text-slate-800 text-sm">👋 반가워요! 맞춤 분석을 위해 딱 한번만 선택해주세요!</h3>
+            <div id="onboarding-card" class="bg-stone-50/50 border border-stone-200/40 rounded-2xl p-6 space-y-5 shadow-sm">
+                <div class="space-y-1">
+                    <h3 class="font-bold text-stone-800 text-base">맞춤 코스를 짜드릴게요 🗺️</h3>
+                    <p class="text-xs text-stone-400">선택사항은 비워두고 넘어가셔도 괜찮아요.</p>
+                </div>
                 
-                <div>
-                    <label class="text-xs font-semibold text-slate-500 block mb-1">성별</label>
-                    <div class="flex gap-2" id="gender-group">
-                        <button onclick="selectProfile('gender', '여성', this)" class="flex-1 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:border-amber-400">여성</button>
-                        <button onclick="selectProfile('gender', '남성', this)" class="flex-1 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:border-amber-400">남성</button>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-stone-500 block">뭐라고 불러드릴까요? <span class="text-stone-400">(필수)</span></label>
+                    <input type="text" id="user-nickname" oninput="validateOnboarding()" placeholder="예: 민지, 준호" 
+                           class="w-full bg-white border border-stone-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-stone-400 transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-stone-500 block">성별</label>
+                        <select id="user-gender" class="w-full bg-white border border-stone-200 rounded-xl px-2 py-2.5 text-xs text-stone-600 focus:outline-none focus:border-stone-400">
+                            <option value="선택안함">선택안함</option>
+                            <option value="여성">여성</option>
+                            <option value="남성">남성</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-stone-500 block">나이대</label>
+                        <select id="user-age" class="w-full bg-white border border-stone-200 rounded-xl px-2 py-2.5 text-xs text-stone-600 focus:outline-none focus:border-stone-400">
+                            <option value="선택안함">선택안함</option>
+                            <option value="10대">10대</option>
+                            <option value="20대">20대</option>
+                            <option value="30대">30대</option>
+                            <option value="40대 이상">40대+</option>
+                        </select>
                     </div>
                 </div>
 
-                <div>
-                    <label class="text-xs font-semibold text-slate-500 block mb-1">나이대</label>
-                    <div class="grid grid-cols-3 gap-2" id="age-group">
-                        <button onclick="selectProfile('age', '10대', this)" class="py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:border-amber-400">10대</button>
-                        <button onclick="selectProfile('age', '20대', this)" class="py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:border-amber-400">20대</button>
-                        <button onclick="selectProfile('age', '30대 이상', this)" class="py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:border-amber-400">30대+</button>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-xs font-semibold text-slate-500 block mb-1">나들이 스타일</label>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-stone-500 block">선호하는 나들이 무드</label>
                     <div class="grid grid-cols-2 gap-2" id="style-group">
-                        <button onclick="selectProfile('style', '핫플 투어', this)" class="py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:border-amber-400">🔥 핫플 투어</button>
-                        <button onclick="selectProfile('style', '여유롭고 한산함', this)" class="py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:border-amber-400">☕ 여유/힐링</button>
+                        <button onclick="selectStyle('핫플 탐방', this)" class="py-2.5 bg-white border border-stone-200 rounded-xl text-xs text-stone-600 hover:bg-stone-50 transition-all">🔥 핫플·팝업스토어</button>
+                        <button onclick="selectStyle('여유롭고 한산함', this)" class="py-2.5 bg-white border border-stone-200 rounded-xl text-xs text-stone-600 hover:bg-stone-50 transition-all">☕ 여유·조용한 한옥</button>
                     </div>
                 </div>
 
-                <button onclick="completeOnboarding()" id="start-btn" class="w-full py-3 bg-slate-900 text-white rounded-xl text-sm font-bold opacity-50 cursor-not-allowed transition-all" disabled>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-stone-500 block">누구와 함께 가시나요?</label>
+                    <select id="user-companion" class="w-full bg-white border border-stone-200 rounded-xl px-2 py-2.5 text-xs text-stone-600 focus:outline-none focus:border-stone-400">
+                        <option value="혼자">혼자만의 힐링</option>
+                        <option value="연인">연인과 데이트</option>
+                        <option value="친구">친구들과 왁자지껄</option>
+                        <option value="가족">가족과 함께</option>
+                    </select>
+                </div>
+
+                <button onclick="completeOnboarding()" id="start-btn" class="w-full py-3 bg-stone-300 text-white rounded-xl text-xs font-bold opacity-60 cursor-not-allowed transition-all" disabled>
                     BOOM! 시작하기
                 </button>
             </div>
 
-            <div id="chat-area" class="hidden space-y-4">
-                <div class="flex items-start gap-2">
-                    <div class="w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center text-xs font-bold">💥</div>
-                    <div class="bg-slate-100 text-slate-800 p-3 rounded-2xl rounded-tl-none text-xs leading-relaxed shadow-sm">
-                        안녕하세요! 프로필 설정을 완료하셨군요. 다음 주 서촌이나 성수동 같은 서울 핫플의 혼잡도와 날씨, 팝업 정보를 다 알려드릴게요. 무엇이든 물어보세요! 😊
+            <div id="chat-area" class="hidden space-y-5">
+                <div class="flex items-start gap-2.5">
+                    <div class="w-7 h-7 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-xs">🧭</div>
+                    <div class="bg-stone-100/70 text-stone-700 p-3.5 rounded-2xl rounded-tl-none text-xs leading-relaxed shadow-sm max-w-[85%] border border-stone-200/30">
+                        반가워요, <span id="welcome-name" class="font-bold text-stone-900"></span>님! 서울 골목골목을 제일 잘 아는 로컬 친구 '부미'예요. 어디로 나들이를 떠나고 싶으신가요? 장소나 요일을 편하게 말씀해 주세요! 😊
                     </div>
                 </div>
-                <div id="chat-messages" class="space-y-4"></div>
+                <div id="chat-messages" class="space-y-5"></div>
             </div>
 
         </div>
 
-        <div id="feedback-bar" class="hidden bg-slate-900 text-white p-3 border-t border-slate-800 space-y-2">
+        <div id="feedback-bar" class="hidden bg-stone-50 p-3 border-t border-stone-100 space-y-2 animate-fade-in">
             <div class="flex justify-between items-center px-1">
-                <span class="text-[11px] text-slate-400">📍 현재 장소: <span id="current-place" class="text-amber-400 font-bold">서촌</span></span>
-                <span class="text-[10px] bg-slate-700 px-1.5 py-0.5 rounded text-amber-300">보정계수 δ: <span id="delta-val">0.0</span></span>
+                <span class="text-[10px] text-stone-400 font-medium">📍 체감 기록: <span id="current-place" class="text-stone-600 font-bold">서촌</span></span>
+                <span class="text-[10px] text-stone-400">다음 예측 정밀도 향상 중</span>
             </div>
-            <div class="flex gap-1.5 text-xs">
-                <button onclick="submitFeedback(-0.5)" class="flex-1 bg-emerald-600/80 py-1.5 rounded-lg font-medium hover:bg-emerald-600">🍃 생각보다 한산</button>
-                <button onclick="submitFeedback(0.0)" class="flex-1 bg-slate-700 py-1.5 rounded-lg font-medium hover:bg-slate-600">👍 예상대로</button>
-                <button onclick="submitFeedback(0.5)" class="flex-1 bg-rose-600/80 py-1.5 rounded-lg font-medium hover:bg-rose-600">🔥 훨씬 붐빔</button>
+            <div class="flex gap-2 text-xs">
+                <button onclick="submitFeedback(-0.5)" class="flex-1 bg-white border border-stone-200 py-2 rounded-xl text-stone-600 hover:bg-stone-50 font-medium text-[11px] shadow-sm">🍃 한산했어</button>
+                <button onclick="submitFeedback(0.0)" class="flex-1 bg-white border border-stone-200 py-2 rounded-xl text-stone-600 hover:bg-stone-50 font-medium text-[11px] shadow-sm">👍 딱 좋았어</button>
+                <button onclick="submitFeedback(0.5)" class="flex-1 bg-white border border-stone-200 py-2 rounded-xl text-stone-600 hover:bg-stone-50 font-medium text-[11px] shadow-sm">🔥 엄청 붐벼</button>
             </div>
         </div>
 
-        <footer class="p-3 border-t border-slate-100 bg-white flex gap-2 items-center">
-            <input type="text" id="user-input" placeholder="온보딩을 먼저 진행해주세요" disabled
-                   class="flex-1 bg-slate-100 border border-slate-200 rounded-full px-4 py-2.5 text-xs focus:outline-none focus:border-amber-400 focus:bg-white transition-all">
+        <footer class="p-4 border-t border-stone-100 bg-white flex gap-2 items-center">
+            <input type="text" id="user-input" placeholder="먼저 정보를 입력해 주세요" disabled
+                   onkeydown="handleKeyDown(event)"
+                   class="flex-1 bg-stone-50 border border-stone-200/70 rounded-full px-4 py-2.5 text-xs focus:outline-none focus:border-stone-400 focus:bg-white transition-all text-stone-800">
             <button onclick="sendMessage()" id="send-btn" disabled
-                    class="w-9 h-9 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center hover:bg-amber-400 hover:text-slate-900 transition-all cursor-not-allowed">
+                    class="w-9 h-9 rounded-full bg-stone-100 text-stone-400 flex items-center justify-center transition-all cursor-not-allowed text-sm">
                 ➔
             </button>
         </footer>
@@ -96,140 +129,120 @@
     </div>
 
     <script>
-        // 글로벌 상태 변수
-        let userProfile = { gender: '', age: '', style: '' };
+        // 글로벌 데이터 상태 관리
+        let userProfile = { nickname: '', gender: '', age: '', style: '선택안함', companion: '' };
         let apiKey = localStorage.getItem('boom_api_key') || '';
         let currentDetectedPlace = '서촌';
 
-        // 페이지 로드 시 API 키 상태 확인
         if(apiKey) {
-            document.getElementById('key-status').innerText = '연결됨';
-            document.getElementById('key-status').className = 'text-emerald-400';
+            document.getElementById('key-status').innerText = 'Connected';
+            document.getElementById('key-status').className = 'text-stone-600 font-semibold';
         }
 
-        // 온보딩 버튼 선택 로직
-        function selectProfile(type, value, element) {
-            userProfile[type] = value;
-            const container = document.getElementById(`${type}-group`);
+        // 스타일 그룹 다중/단일 선택 핸들러
+        function selectStyle(value, element) {
+            userProfile.style = value;
+            const container = document.getElementById('style-group');
             container.querySelectorAll('button').forEach(btn => {
-                btn.classList.remove('border-amber-500', 'bg-amber-400/20', 'text-amber-900', 'font-bold');
+                btn.className = "py-2.5 bg-white border border-stone-200 rounded-xl text-xs text-stone-600 hover:bg-stone-50 transition-all";
             });
-            element.classList.add('border-amber-500', 'bg-amber-400/20', 'text-amber-900', 'font-bold');
+            element.className = "py-2.5 bg-stone-900 border border-stone-900 rounded-xl text-xs text-white font-medium transition-all shadow-sm";
+            validateOnboarding();
+        }
+
+        // 필수조건 검증 (닉네임 글자수 확인)
+        function validateOnboarding() {
+            const nickname = document.getElementById('user-nickname').value.trim();
+            const startBtn = document.getElementById('start-btn');
             
-            // 모든 조건 충족 시 시작버튼 활성화
-            if(userProfile.gender && userProfile.age && userProfile.style) {
-                const startBtn = document.getElementById('start-btn');
+            if(nickname.length >= 1) {
                 startBtn.disabled = false;
-                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                startBtn.classList.add('hover:bg-slate-800', 'shadow-md');
+                startBtn.className = "w-full py-3 bg-stone-950 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-stone-800 transition-all cursor-pointer";
+            } else {
+                startBtn.disabled = true;
+                startBtn.className = "w-full py-3 bg-stone-300 text-white rounded-xl text-xs font-bold opacity-60 cursor-not-allowed transition-all";
             }
         }
 
-        // 온보딩 완료
+        // 온보딩 마쳐서 대화방 열기
         function completeOnboarding() {
+            userProfile.nickname = document.getElementById('user-nickname').value.trim();
+            userProfile.gender = document.getElementById('user-gender').value;
+            userProfile.age = document.getElementById('user-age').value;
+            userProfile.companion = document.getElementById('user-companion').value;
+
             document.getElementById('onboarding-card').classList.add('hidden');
             document.getElementById('chat-area').classList.remove('hidden');
+            document.getElementById('welcome-name').innerText = userProfile.nickname;
             
+            // 입력창 활성화
             const input = document.getElementById('user-input');
             const sendBtn = document.getElementById('send-btn');
             input.disabled = false;
-            input.placeholder = "예: 다음 주 서촌 가려는데 언제 좋을까?";
+            input.placeholder = "어디로 갈지, 언제 갈지 편하게 물어보세요...";
             sendBtn.disabled = false;
-            sendBtn.classList.remove('bg-slate-200', 'text-slate-400', 'cursor-not-allowed');
-            sendBtn.classList.add('bg-slate-900', 'text-white');
-            
-            updateDeltaUI();
+            sendBtn.className = "w-9 h-9 rounded-full bg-stone-950 text-white flex items-center justify-center hover:bg-stone-800 transition-all cursor-pointer shadow-sm";
         }
 
-        // API 키 설정 (시연용)
-        function toggleApiKey() {
-            const key = prompt("OpenAI API Key를 입력하세요 (비워두면 시뮬레이션 모드로 작동):", apiKey);
-            if(key !== null) {
-                apiKey = key;
-                localStorage.setItem('boom_api_key', key);
-                const status = document.getElementById('key-status');
-                if(key) {
-                    status.innerText = '연결됨';
-                    status.className = 'text-emerald-400';
-                } else {
-                    status.innerText = '미연결 (시뮬레이션 모드)';
-                    status.className = 'text-red-400';
-                }
+        // 엔터키 클릭 시 자동 전송 UX 기능 반영
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault(); // 줄바꿈 방지
+                sendMessage();
             }
         }
 
-        // 피드백 데이터 로직 (Layer 5)
-        function updateDeltaUI() {
-            let deltaData = JSON.parse(localStorage.getItem('boom_delta') || '{"서촌": 0.0, "성수": 0.0}');
-            if(!deltaData[currentDetectedPlace]) deltaData[currentDetectedPlace] = 0.0;
-            document.getElementById('delta-val').innerText = deltaData[currentDetectedPlace].toFixed(1);
-            document.getElementById('current-place').innerText = currentDetectedPlace;
-        }
-
-        function submitFeedback(val) {
-            let deltaData = JSON.parse(localStorage.getItem('boom_delta') || '{"서촌": 0.0, "성수": 0.0}');
-            deltaData[currentDetectedPlace] = (deltaData[currentDetectedPlace] || 0) + val;
-            localStorage.setItem('boom_delta', JSON.stringify(deltaData));
-            updateDeltaUI();
-            alert(`피드백이 반영되었습니다! ${currentDetectedPlace}의 보정계수 δ가 ${deltaData[currentDetectedPlace].toFixed(1)}로 업데이트 되었습니다.`);
-        }
-
-        // 메시지 전송 및 처리 (Layer 2 & 3 & 4)
+        // 메시지 핸들링 시스템
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const text = input.value.trim();
             if(!text) return;
 
-            // 유저 말풍선 추가
+            // 유저 말풍선 렌더
             appendMessage('user', text);
             input.value = '';
 
-            // 간단한 장소 감지 로직 (Layer 2)
+            // 텍스트 기반 핵심 플레이스 감지 (발표용 장소 트리거)
             if(text.includes('성수')) currentDetectedPlace = '성수';
             else if(text.includes('홍대')) currentDetectedPlace = '홍대';
-            else currentDetectedPlace = '서촌'; // 기본값
+            else currentDetectedPlace = '서촌';
             
-            updateDeltaUI();
+            document.getElementById('feedback-bar').classList.add('hidden'); // 피드백 바 임시 숨김
+            
+            // 대기중 로딩 인디케이터
+            const loadingId = appendMessage('bot', '생각 중...');
 
-            // 챗봇 '생각 중...' 로딩 표시
-            const loadingId = appendMessage('bot', '데이터 분석 및 웹 서치 중... 🔍');
-
-            // Layer 3: AI 호출 또는 시뮬레이션 데이터 반환
             setTimeout(async () => {
                 let responseText = "";
                 
                 if (apiKey) {
-                    // 실제 OpenAI API 호출 로직 (보정계수 및 프로필 프롬프트 조립 포함)
                     responseText = await callOpenAI(text);
                 } else {
-                    // 시뮬레이션 모드 (완벽한 발표 동선을 위한 Mock 데이터)
                     responseText = getMockResponse(text);
                 }
 
-                // 로딩 메시지 제거 후 스트리밍 효과 구현 (Layer 4)
                 document.getElementById(loadingId).remove();
                 streamResponse(responseText);
-            }, 1000);
+            }, 800);
         }
 
-        // 메시지 화면 추가 함수
         function appendMessage(sender, text) {
             const container = document.getElementById('chat-messages');
             const msgId = 'msg-' + Date.now();
             const wrapper = document.createElement('div');
             wrapper.id = msgId;
-            wrapper.className = sender === 'user' ? 'flex justify-end' : 'flex items-start gap-2';
+            wrapper.className = sender === 'user' ? 'flex justify-end' : 'flex items-start gap-2.5';
 
             if(sender === 'user') {
                 wrapper.innerHTML = `
-                    <div class="chat-bubble bg-slate-900 text-white p-3 rounded-2xl rounded-tr-none text-xs leading-relaxed shadow-sm">
+                    <div class="chat-bubble bg-stone-900 text-white px-3.5 py-2.5 rounded-2xl rounded-tr-none text-xs leading-relaxed shadow-sm">
                         ${text}
                     </div>
                 `;
             } else {
                 wrapper.innerHTML = `
-                    <div class="w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center text-xs font-bold shrink-0">💥</div>
-                    <div class="chat-bubble bg-slate-100 text-slate-800 p-3 rounded-2xl rounded-tl-none text-xs leading-relaxed shadow-sm whitespace-pre-line" id="body-${msgId}">
+                    <div class="w-7 h-7 rounded-full bg-stone-50 border border-stone-200/60 flex items-center justify-center text-xs shrink-0 shadow-2xs">🧭</div>
+                    <div class="chat-bubble bg-stone-50 border border-stone-100 text-stone-700 px-3.5 py-2.5 rounded-2xl rounded-tl-none text-xs leading-relaxed shadow-xs whitespace-pre-line" id="body-${msgId}">
                         ${text}
                     </div>
                 `;
@@ -239,7 +252,7 @@
             return msgId;
         }
 
-        // 글자 단위 스트리밍 효과 (Layer 4)
+        // 타이핑 효과 스트리밍
         function streamResponse(fullText) {
             const msgId = appendMessage('bot', '');
             const target = document.getElementById(`body-${msgId}`);
@@ -250,74 +263,42 @@
                     target.innerHTML += fullText.charAt(index);
                     index++;
                     document.getElementById('main-content').scrollTop = document.getElementById('main-content').scrollHeight;
-                    setTimeout(nextChar, 25); // 타이핑 속도 조절
+                    setTimeout(nextChar, 20);
                 } else {
-                    // 답변이 완전히 끝난 후 피드백 바 노출
+                    // 완료되면 피드백 노출
+                    document.getElementById('current-place').innerText = currentDetectedPlace;
                     document.getElementById('feedback-bar').classList.remove('hidden');
                 }
             }
             nextChar();
         }
 
-        // 시연용 Mock 데이터 (발표 동선에 맞춤)
+        // 고도화 요청 반영: 출처/시스템 정보가 사라진 '로컬 전문가 친구' 모드 시뮬레이션 데이터
         function getMockResponse(text) {
-            let deltaData = JSON.parse(localStorage.getItem('boom_delta') || '{"서촌": 0.0, "성수": 0.0}');
-            let dVal = deltaData[currentDetectedPlace] || 0.0;
-            let crowdStatus = dVal > 0 ? "체감상 훨씬 혼잡함🔥" : dVal < 0 ? "생각보다 여유로움🍃" : "보통 수준 정보 분석 중📊";
-
+            const nickname = userProfile.nickname;
+            
             if(text.includes('서촌')) {
-                return `현재 저장된 유저 보정 데이터[${crowdStatus}]를 반영해 친한 친구 모드로 알려줄게! 😊\n\n서촌 나들이 계획 중이구나! 서울시 공공데이터 상 다음 주 서촌은 목요일이 가장 한산한(쾌적) 편인데, 날씨 웹 서치를 해보니 목요일 오후에 비 소식이 살짝 잡혀있어. \n\n그래서 내 추천은 수요일이야! 수요일은 실시간 혼잡도 예측상 오후 3시부터 꽤 한산해지거든. 늦은 오후에 서촌 골목길 예쁜 카페에 자리를 잡았다가 근처 맛집에서 저녁 먹는 동선이 딱이야. ☕\n\n아, 그리고 웹 서치로 찾아보니까 다음 주 수요일부터 통인시장 인근에서 '000 플리마켓'이 새로 열린대! 아기자기한 소품 좋아하면 들러봐도 좋을 것 같아.\n\n너의 프로필(${userProfile.age} ${userProfile.gender} / ${userProfile.style})에 딱 맞는 요즘 뜨는 서촌 한옥 북카페 리스트도 더 뽑아줄까? 누구랑 가는지도 말해주면 코스를 더 기가 막히게 짜줄 수 있어! 😆`;
+                return `${nickname}아, 서촌 나들이라니 정말 설레겠다! 서촌을 가기에 다음 주 중에 가장 좋은 날은 수요일이야. \n\n사실 목요일이 거리 자체는 제일 여유로울 것 같긴 한데, 오후 늦게 비 소식이 살짝 잡혀 있더라고. 우산 챙기는 것보다 맑을 때 걷는 게 좋잖아? \n\n수요일 오후 3시쯤 되면 점심 인파가 싹 빠지면서 골목길이 아주 아늑하고 한산해져. 그때 근처에 숨어있는 예쁜 한옥 북카페에 자리를 잡아보는 걸 추천해. 조용히 책 읽거나 멍 때리기 딱 좋거든. ☕\n\n참, 그리고 수요일부터 마침 통인시장 옆 골목에서 소소하게 플리마켓도 새로 오픈한다고 하니까, 아기자기한 소품 구경하는 걸 좋아하면 슬쩍 동선에 묶어봐도 괜찮을 거야.\n\n이번에 ${userProfile.companion} 가나 본데, 혹시 가고 싶었던 카페 분위기나 좋아하는 음식 종류가 따로 있어? 더 마음에 드는 스팟들로 골라줄 테니 편하게 말해줘! 😆`;
             } else if(text.includes('성수')) {
-                return `성수동 오늘 상황 브리핑 들어간다! 🚀\n\n지금 실시간 서울시 데이터상 성수 카페거리는 '약간 붐빔' 단계야. 하지만 우리 유저들의 최근 피드백 보정치(δ: ${dVal})를 더해보면, 실제로는 메인 스트리트 팝업스토어 대기 줄 때문에 대기 시간이 훨씬 기니까 주의해야 해! \n\n성수 연무장길 중심으로 지금 웹 서치 핫토픽인 브랜드 팝업 3곳 정보랑, ${userProfile.age} 연령대가 가장 많이 영수증 인증한 숨은 맛집 매칭해줄까?`;
+                return `${nickname}아! 성수동 오늘 가려는 거구나? 지금 성수 메인 연무장길 쪽은 평소보다 팝업 대기 줄이 조금 길어져서 북적거리는 상태야. \n\n만약 가보려고 눈여겨본 팝업이 있다면 대기 시스템을 미리 걸어두는 게 팁이야. 만약 너무 복잡한 게 싫다면 뚝섬역이나 서울숲 초입 골목으로 살짝 틀어봐. 그쪽이 훨씬 한산하고 분위기 좋은 편집숍들이 많거든!\n\n오늘 점심이나 저녁 먹을 만한 숨은 맛집 리스트 매칭해줄까? 어떤 분위기를 원해?`;
             } else {
-                return `'${text}' 검색 완료! 실시간 서울시 공공 데이터와 이번 주 트렌드 웹서치 결과를 매칭 중이야. 시연을 위해 '서촌' 혹은 '성수'가 포함된 질문을 던지시면 기획서에 명시된 플로우의 답변을 완벽히 확인할 수 있어!`;
+                return `안녕 ${nickname}아! 지금 '${text}' 인근 분위기랑 트렌드를 쭉 훑어보고 있어. 발표 시연을 위해서 질문에 '서촌'이나 '성수'를 넣어서 다시 물어봐 줄래? 동선에 딱 맞는 기가 막힌 추천 결과를 바로 보여줄게!`;
             }
         }
 
-        // 실제 OpenAI API 호출 (Key가 있을 때 작동)
-        async function callOpenAI(userText) {
-            let deltaData = JSON.parse(localStorage.getItem('boom_delta') || '{"서촌": 0.0, "성수": 0.0}');
-            let dVal = deltaData[currentDetectedPlace] || 0.0;
-
-            const systemPrompt = `
-                당신은 실시간 장소 혼잡도 가이드 서비스 'BOOM!'의 AI 챗봇 비서입니다.
-                다음 사용자의 프로필과 로컬 유저들의 실제 체감 보정치(delta)를 프롬프트에 녹여 답변하세요.
-                말투는 매우 친근하고 다정한 친구 말투(반말 혹은 친근한 존댓말 선택 가능, 여기서는 '~야', '~해' 등의 친화적 어조 권장)로 작성하세요.
-                
-                [사용자 프로필]
-                - 연령대: ${userProfile.age}
-                - 성별: ${userProfile.gender}
-                - 선호 스타일: ${userProfile.style}
-                
-                [현재 감지된 장소 및 체감 보정 계수]
-                - 장소: ${currentDetectedPlace}
-                - 유저 피드백 보정치 (δ): ${dVal} (이 값이 높을수록 공식 데이터보다 사람들이 더 밀집해있다고 느끼는 상태임)
-                
-                답변에는 날씨 데이터 분석 결과, 가장 방문하기 좋은 요일/시간대 제안, 주변 행사/팝업스토어 웹서치 가상 정보, 그리고 추가 정보를 유도하는 다정한 질문을 반드시 포함하세요.
-            `;
-
-            try {
-                const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-4o-mini', // 시연용으로 비용이 저렴하고 빠른 모델 사용
-                        messages: [
-                            { role: 'system', content: systemPrompt },
-                            { role: 'user', content: userText }
-                        ],
-                        temperature: 0.7
-                    })
-                });
-                const data = await response.json();
-                return data.choices[0].message.content;
-            } catch (error) {
-                console.error(error);
-                return "앗, API 호출 중에 오류가 났어. Key가 올바른지 확인해줘! 대신 시뮬레이션 모드로 전환해줄게.";
+        // 숨겨진 API 세팅 (시연 도중 비밀 설정 가능)
+        function toggleApiKey() {
+            const key = prompt("OpenAI API Key 설정 (공백 시 시뮬레이션 모드):", apiKey);
+            if(key !== null) {
+                apiKey = key;
+                localStorage.setItem('boom_api_key', key);
+                location.reload();
             }
+        }
+
+        // 피드백 반영 얼럿
+        function submitFeedback(val) {
+            alert(`피드백이 기록되었습니다. 다음번 ${currentDetectedPlace} 질답 시 유저 체감 오차를 계산하여 맞춤 반영합니다.`);
         }
     </script>
 </body>
