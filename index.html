@@ -3,217 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOM! - 서울 플레이스 혼잡도 가이드</title>
+    <title>BOOM! - 실시간 서울 골목 컨시어지</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f7f6f3; }
-        .chat-bubble { max-width: 85%; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* 도도독 흘러나오는 스트리밍 느낌을 위한 커스텀 스타일 */
+        .typing::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        /* 스크롤바 숨기기 */
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="min-h-screen flex justify-center items-center p-0 sm:p-4">
+<body class="bg-slate-950 text-slate-100 font-sans antialiased flex justify-center items-center min-h-screen p-0 sm:p-4">
 
-    <div class="w-full max-w-md h-screen sm:h-[90vh] bg-white sm:rounded-3xl shadow-xl shadow-stone-200/50 flex flex-col overflow-hidden border border-stone-200/60 relative">
+    <main class="w-full max-w-md h-[100vh] sm:h-[850px] bg-slate-900 sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border border-slate-800">
         
-        <header class="bg-white/80 backdrop-blur-md p-4 text-center border-b border-stone-100 flex justify-between items-center px-6">
-            <div class="text-left">
-                <h1 class="text-lg font-bold text-stone-800 tracking-tight flex items-center gap-1">
-                    <span>BOOM!</span><span class="text-sm font-normal text-stone-400">💥</span>
-                </h1>
-                <p class="text-[10px] text-stone-400">나에게 딱 맞춘 서울 골목길 메이트</p>
-            </div>
-            <div class="text-[10px] bg-emerald-50 px-2.5 py-1 rounded-full text-emerald-600 font-semibold border border-emerald-200">
-                Gemini Engine Active
-            </div>
-        </header>
-
-        <div class="flex-1 overflow-y-auto p-5 space-y-5 no-scrollbar" id="main-content">
-            
-            <div id="onboarding-card" class="bg-stone-50/50 border border-stone-200/40 rounded-2xl p-6 space-y-5 shadow-sm">
-                <div class="space-y-1">
-                    <h3 class="font-bold text-stone-800 text-base">맞춤 나들이 코칭 설정 🗺️</h3>
-                    <p class="text-[11px] text-stone-400">성향에 맞춰 Gemini 엔진이 맞춤 답변을 생성합니다.</p>
-                </div>
-                
-                <div class="space-y-1.5">
-                    <label class="text-xs font-semibold text-stone-500 block">뭐라고 불러드릴까요? <span class="text-stone-400">(필수)</span></label>
-                    <input type="text" id="user-nickname" oninput="validateOnboarding()" placeholder="예: 민지, 준호" 
-                           class="w-full bg-white border border-stone-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-stone-400 transition-all text-stone-800">
+        <section id="onboarding-screen" class="flex-1 flex flex-col justify-between p-6 z-10">
+            <div class="space-y-8 mt-6">
+                <div class="text-center space-y-2">
+                    <h1 class="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">BOOM! 💥</h1>
+                    <p class="text-sm text-slate-400 font-medium">내가 지금 가려는 곳, 얼마나 BOOM빌까?</p>
                 </div>
 
-                <div class="space-y-1.5">
-                    <label class="text-xs font-semibold text-stone-500 block">오늘 어떤 무드의 공간을 찾으시나요?</label>
-                    <div class="grid grid-cols-2 gap-2" id="style-group">
-                        <button onclick="selectStyle('🔥 핫플·팝업스토어 탐방', this)" class="py-2 bg-white border border-stone-200 rounded-xl text-[11px] text-stone-600 hover:bg-stone-50 transition-all">🔥 핫플·팝업스토어</button>
-                        <button onclick="selectStyle('☕ 여유롭고 한산한 고즈넉함', this)" class="py-2 bg-white border border-stone-200 rounded-xl text-[11px] text-stone-600 hover:bg-stone-50 transition-all">☕ 여유·조용한 한옥</button>
+                <div class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-slate-400 tracking-wider uppercase">성별</label>
+                        <div class="grid grid-cols-2 gap-3" id="gender-group">
+                            <button data-value="여성" class="onboard-btn p-3 rounded-xl bg-slate-800 border border-slate-700 font-medium active:scale-95 transition-all text-center">여성</button>
+                            <button data-value="남성" class="onboard-btn p-3 rounded-xl bg-slate-800 border border-slate-700 font-medium active:scale-95 transition-all text-center">남성</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-slate-400 tracking-wider uppercase">나이대</label>
+                        <div class="grid grid-cols-3 gap-2" id="age-group">
+                            <button data-value="10대" class="onboard-btn p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-medium active:scale-95 transition-all">10대</button>
+                            <button data-value="20대" class="onboard-btn p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-medium active:scale-95 transition-all">20대</button>
+                            <button data-value="30대" class="onboard-btn p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-medium active:scale-95 transition-all">30대</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-slate-400 tracking-wider uppercase">나들이 목적</label>
+                        <div class="grid grid-cols-2 gap-2" id="purpose-group">
+                            <button data-value="데이트" class="onboard-btn p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-medium active:scale-95 transition-all">👩‍❤️‍👨 데이트</button>
+                            <button data-value="혼밥/작업" class="onboard-btn p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-medium active:scale-95 transition-all">☕ 혼밥/작업</button>
+                            <button data-value="친구와 친목" class="onboard-btn p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-medium active:scale-95 transition-all">🔥 친구와 친목</button>
+                            <button data-value="가족 나들이" class="onboard-btn p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-medium active:scale-95 transition-all">🌳 가족 나들이</button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <button onclick="completeOnboarding()" id="start-btn" class="w-full py-3 bg-stone-300 text-white rounded-xl text-xs font-bold opacity-60 cursor-not-allowed transition-all" disabled>
-                    BOOM! 시작하기
+            <button id="start-btn" disabled class="w-full py-4 rounded-xl bg-slate-700 text-slate-400 font-bold text-base cursor-not-allowed transition-all duration-300 shadow-lg shadow-emerald-500/10 mb-4">
+                프로필을 선택해 주세요
+            </button>
+        </section>
+
+        <section id="main-screen" class="flex-1 flex flex-col hidden overflow-hidden">
+            <header class="p-4 bg-slate-900/50 backdrop-blur border-b border-slate-800 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl font-black tracking-wider text-emerald-400">BOOM!</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 font-mono">SEOUL LIVE</span>
+                </div>
+                <button id="reset-profile-btn" class="text-xs text-slate-500 hover:text-slate-300 transition-all flex items-center gap-1">
+                    <i data-lucide="user" class="w-3.5 h-3.5"></i> 프로필 변경
                 </button>
+            </header>
+
+            <div class="p-3 bg-slate-900/30 border-b border-slate-800/50 flex gap-2 overflow-x-auto shrink-0">
+                <button class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 hover:border-emerald-500 active:scale-95 transition-all shrink-0">🌳 한강/공원</button>
+                <button class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 hover:border-emerald-500 active:scale-95 transition-all shrink-0">🛍️ 홍대/성수 상권</button>
+                <button class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 hover:border-emerald-500 active:scale-95 transition-all shrink-0">🏛️ 서촌/고궁</button>
             </div>
 
-            <div id="chat-area" class="hidden space-y-5">
-                <div class="flex items-start gap-2.5">
-                    <div class="w-7 h-7 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-xs">🧭</div>
-                    <div class="bg-stone-100/70 text-stone-700 p-3.5 rounded-2xl rounded-tl-none text-xs leading-relaxed max-w-[85%] border border-stone-200/30">
-                        반가워요, <span id="welcome-name" class="font-bold text-stone-900"></span>님! 서울 121개 주요 핫플을 완벽하게 마스터한 로컬 가이드 '부미'예요. 성수, 홍대, 서촌, 강남 등 어디든 궁금한 동네나 요일을 편하게 물어봐 주세요! 😊
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-950/20">
+                <div class="flex gap-3 max-w-[85%]">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center font-bold text-xs shrink-0 shadow">🤖</div>
+                    <div class="space-y-1">
+                        <div class="bg-slate-800 border border-slate-700/60 px-4 py-2.5 rounded-2xl rounded-tl-none text-sm leading-relaxed shadow-sm">
+                            반가워요! 다음 주에 가고 싶은 서울의 핫스팟이 있나요? 💥 언제 가야 덜 붐비고 알차게 보낼 수 있을지 완벽한 가이드를 짜드릴게요. "다음 주 홍대 어때?" 처럼 편하게 물어보세요!
+                        </div>
                     </div>
                 </div>
-                <div id="chat-messages" class="space-y-5"></div>
             </div>
-        </div>
 
-        <footer class="p-4 border-t border-stone-100 bg-white flex gap-2 items-center">
-            <input type="text" id="user-input" placeholder="먼저 정보를 입력해 주세요" disabled onkeydown="handleKeyDown(event)"
-                   class="flex-1 bg-stone-50 border border-stone-200/70 rounded-full px-4 py-2.5 text-xs focus:outline-none focus:border-stone-400 focus:bg-white transition-all text-stone-800">
-            <button onclick="sendMessage()" id="send-btn" disabled
-                    class="w-9 h-9 rounded-full bg-stone-100 text-stone-400 flex items-center justify-center text-sm">➔</button>
-        </footer>
-    </div>
+            <div class="p-4 bg-slate-900/80 backdrop-blur border-t border-slate-800 shrink-0">
+                <div class="flex gap-2 bg-slate-950 border border-slate-800 rounded-xl p-1.5 focus-within:border-emerald-500/50 transition-all">
+                    <input id="chat-input" type="text" placeholder="어디로 놀러 가실 건가요?..." class="flex-1 bg-transparent px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-600">
+                    <button id="send-btn" class="w-9 h-9 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-bold hover:bg-emerald-400 active:scale-95 transition-all shadow-md shadow-emerald-500/20">
+                        <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
 
-    <script>
-        let userProfile = { nickname: '', style: '' };
-        let contentsHistory = [];
-        
-        // 발급해주신 Gemini API Key 다이렉트 탑재
-        const apiKey = "AIzaSyBIQ1dX6poEJYhVR-teZecOcLunNloHU8g";
+    </main>
 
-        function selectStyle(value, element) {
-            userProfile.style = value;
-            const container = document.getElementById('style-group');
-            container.querySelectorAll('button').forEach(btn => {
-                btn.className = "py-2 bg-white border border-stone-200 rounded-xl text-[11px] text-stone-600 hover:bg-stone-50 transition-all";
-            });
-            element.className = "py-2 bg-stone-900 border border-stone-900 rounded-xl text-[11px] text-white font-medium transition-all shadow-sm";
-            validateOnboarding();
-        }
-
-        function validateOnboarding() {
-            const nickname = document.getElementById('user-nickname').value.trim();
-            const startBtn = document.getElementById('start-btn');
-            startBtn.disabled = (nickname.length < 1 || !userProfile.style);
-            if(!startBtn.disabled) {
-                startBtn.className = "w-full py-3 bg-stone-950 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-stone-800 transition-all cursor-pointer";
-            } else {
-                startBtn.className = "w-full py-3 bg-stone-300 text-white rounded-xl text-xs font-bold opacity-60 cursor-not-allowed transition-all";
-            }
-        }
-
-        function completeOnboarding() {
-            userProfile.nickname = document.getElementById('user-nickname').value.trim();
-
-            document.getElementById('onboarding-card').classList.add('hidden');
-            document.getElementById('chat-area').classList.remove('hidden');
-            document.getElementById('welcome-name').innerText = userProfile.nickname;
-            
-            const input = document.getElementById('user-input');
-            const sendBtn = document.getElementById('send-btn');
-            input.disabled = false; input.placeholder = "성수동, 강남역, 서울숲 등 어디든 물어보세요...";
-            sendBtn.disabled = false;
-            sendBtn.className = "w-9 h-9 rounded-full bg-stone-950 text-white flex items-center justify-center text-sm cursor-pointer shadow-sm";
-        }
-
-        function handleKeyDown(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const text = input.value.trim();
-            if(!text) return;
-
-            appendMessage('user', text);
-            input.value = '';
-
-            const loadingId = appendMessage('bot', '부미가 생각 중...');
-            contentsHistory.push({ role: "user", parts: [{ text: text }] });
-
-            // 제공해주신 121개 주요 장소 데이터 인덱스를 프롬프트 내부 컨텍스트로 주입
-            const systemInstruction = `너는 서울시 공공데이터 및 트렌드를 기반으로 121개 주요 핫플레이스의 실시간 인구 밀집도와 날씨 흐름을 가이드하는 다정한 동네 전문가 친구 '부미'야.
-            
-            [필수 준수 사항]
-            1. 절대 '공공데이터 결과', '시스템 분석', '프롬프트 규칙', '가중치 계수' 등 백엔드/개발자용 전문 기술 언어나 출처 가이드라인을 답변 텍스트에 포함하지 마라. (캡처 대참사 방지) 원래 네 머릿속에 축적된 직관인 것처럼 자연스럽게 표현해라.
-            2. 유저의 프로필 상태를 괄호()나 대괄호[] 형태로 답변창 상단에 요약해서 노출하지 마라.
-            3. 문장의 시작과 중간에 무조건 유저의 이름인 '${userProfile.nickname}'을(를) 친구 부르듯 정겹게 불러줘. (예: "${userProfile.nickname}아, 이번 주 성수동은 진짜 연무장길 메인 팝업 때문에 엄청나!")
-            4. 현재 유저의 취향 성향은 [${userProfile.style}]이야. 이 무드에 맞춰서 덜 복잡한 시간대나 조용한 안쪽 골목 루트를 우선 큐레이팅해줘.
-            5. 딱딱한 로봇 어투(~입니다, 제공합니다)는 절대로 쓰지 마라. 무조건 친근하고 상냥한 반말 친구 말투(~야, ~어, ~했어, ~이더라고)로 대답해라.
-
-            [네가 마스터하고 있는 서울시 주요 장소 인덱스 데이터베이스]
-            - 관광특구: 강남 MICE, 동대문, 명동, 이태원, 잠실, 종로·청계, 홍대 관광특구
-            - 고궁·문화유산: 경복궁, 광화문·덕수궁, 보신각, 서울 암사동 유적, 창덕궁·종묘
-            - 발달상권 및 주요 핫플: 강남역, 건대입구역, 고속터미널역, 교대역, 구로디지털단지역, 규수방, 노량진, 대치동, 동대문종합시장, 뚝섬역, 명동거리, 미아사거리역, 발산역, 북창동, 불광역, 사당역, 삼청동, 상계역, 상수역, 서울역, 선릉역, 성수동, 성신여대입구역, 수유역, 신도림역, 신림역, 신반포역, 신사역, 신촌오거리, 압구정 로데오길, 여의도, 연남동, 영등포역, 왕십리역, 용산역, 우이동, 이태원역, 장한평역, 천호역, 총신대입구역, 충무로역, 투모로우랜드, 하계역, 홍대입구역, 화곡역, 해방촌·경리단길, 서촌, 가산디지털단지역, 구로디지털단지역
-            - 공원 및 한산 플레이스: 남산공원, 노들섬, 뚝섬한강공원, 망원한강공원, 반포한강공원, 북서울꿈의숲, 서리풀공원·몽마르뜨공원, 서울대공원, 서울숲공원, 아차산, 양화한강공원, 어린이대공원, 여의도한강공원, 월드컵공원, 응봉산, 이촌한강공원, 잠실종합운동장
-            
-            사용자가 위 장소 중 어디를 물어보든, 해당 장소의 특성(예: 성수는 팝업스토어 밀집, 서촌은 한옥 힐링, 한강공원은 피크닉 무드)과 요일별 인구 예측 흐름을 조합해서 최고의 맞춤 동선을 뽑아내 줘.`;
-
-            try {
-                // 구글 공식 최신 Gemini API 서버 파이프라인 가동
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: contentsHistory,
-                        systemInstruction: { parts: [{ text: systemInstruction }] },
-                        generationConfig: { temperature: 0.7, maxOutputTokens: 800 }
-                    })
-                });
-
-                const data = await response.json();
-                document.getElementById(loadingId).remove();
-
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    const reply = data.candidates[0].content.parts[0].text;
-                    contentsHistory.push({ role: "model", parts: [{ text: reply }] });
-                    streamResponse(reply);
-                } else {
-                    streamResponse("앗, 구글 엔진에서 일시적인 트래픽 오차가 난 것 같아. 다시 한번만 물어봐 줄래?");
-                }
-            } catch (error) {
-                document.getElementById(loadingId).remove();
-                streamResponse("네트워크 통신에 살짝 지연이 생긴 것 같아 ㅠㅠ");
-                console.error(error);
-            }
-        }
-
-        function appendMessage(sender, text) {
-            const container = document.getElementById('chat-messages');
-            const msgId = 'msg-' + Date.now();
-            const wrapper = document.createElement('div');
-            wrapper.id = msgId;
-            wrapper.className = sender === 'user' ? 'flex justify-end' : 'flex items-start gap-2.5';
-
-            if(sender === 'user') {
-                wrapper.innerHTML = `<div class="chat-bubble bg-stone-900 text-white px-3.5 py-2.5 rounded-2xl rounded-tr-none text-xs leading-relaxed shadow-sm">${text}</div>`;
-            } else {
-                wrapper.innerHTML = `
-                    <div class="w-7 h-7 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center text-xs shrink-0">🧭</div>
-                    <div class="chat-bubble bg-stone-50 border border-stone-100 text-stone-700 px-3.5 py-2.5 rounded-2xl rounded-tl-none text-xs leading-relaxed whitespace-pre-line shadow-xs" id="body-${msgId}">${text}</div>`;
-            }
-            container.appendChild(wrapper);
-            document.getElementById('main-content').scrollTop = document.getElementById('main-content').scrollHeight;
-            return msgId;
-        }
-
-        function streamResponse(fullText) {
-            const msgId = appendMessage('bot', '');
-            const target = document.getElementById(`body-${msgId}`);
-            let index = 0;
-            function nextChar() {
-                if (index < fullText.length) {
-                    target.innerHTML += fullText.charAt(index); index++;
-                    document.getElementById('main-content').scrollTop = document.getElementById('main-content').scrollHeight;
-                    setTimeout(nextChar, 10); // 타이핑 효과 가속화하여 시연 속도 쾌적하게 개선
-                }
-            }
-            nextChar();
-        }
-    </script>
+    <script>lucide.createIcons();</script>
+<script>lucide.createIcons();</script>
+    
+    <script src="places.js"></script> 
+    <script src="app.js"></script>
+</body>
+</html>
+    <script src="app.js"></script>
 </body>
 </html>
