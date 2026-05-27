@@ -1,6 +1,14 @@
-// 👑 [최종 마스터 버전] LocalStorage 피드백 루프 반영 프론트엔드 엔진 (app.js)
+// 👑 [시간 동기화 + 가로 슬라이더] 교차 연동 최적화 버전 (app.js)
 
-let userProfile = { gender: '', age: '', purpose: '' };
+// 온보딩이 필수가 아니므로 기본값을 '미지정' 및 슬라이더 디폴트로 선언
+let userProfile = { 
+    gender: '미지정', 
+    age: '20대 후반', 
+    purpose: '미지정', 
+    companion: '미지정', 
+    transport: '미지정', 
+    tolerance: '미지정' 
+};
 
 const onboardingScreen = document.getElementById('onboarding-screen');
 const mainScreen = document.getElementById('main-screen');
@@ -10,49 +18,66 @@ const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const resetProfileBtn = document.getElementById('reset-profile-btn');
 
-// 1️⃣ 온보딩 시스템
+// 1️⃣ 온보딩 시스템 (버튼 선택형 + 가로 슬라이더 가이드 포함)
 function setupOnboarding() {
-    const groups = ['gender-group', 'age-group', 'purpose-group'];
+    // 가로 바 나이 슬라이더 제어 로직
+    const ageSlider = document.getElementById('age-slider');
+    const ageVal = document.getElementById('age-val');
+    const ageLabels = ["", "10대", "20대 초반", "20대 후반", "30대", "40대", "50대", "60대 이상"];
+
+    if (ageSlider && ageVal) {
+        ageSlider.addEventListener('input', (e) => {
+            const index = parseInt(e.target.value);
+            const selectedAge = ageLabels[index] || "미지정";
+            ageVal.innerText = selectedAge;
+            userProfile.age = selectedAge;
+        });
+    }
+
+    // 나머지 성별, 목적, 동행자, 교통 등 버튼식 그룹 제어
+    const groups = ['gender-group', 'purpose-group', 'companion-group', 'transport-group', 'tolerance-group'];
+    
     groups.forEach(groupId => {
         const group = document.getElementById(groupId);
+        if (!group) return;
         const buttons = group.querySelectorAll('.onboard-btn');
+        
         buttons.forEach(btn => {
             btn.addEventListener('click', () => {
                 buttons.forEach(b => {
                     b.classList.remove('bg-emerald-500/20', 'border-emerald-500', 'text-emerald-400');
                     b.classList.add('bg-slate-800', 'border-slate-700', 'text-slate-100');
                 });
-                btn.classList.remove('bg-slate-800', 'border-slate-700');
+                btn.classList.remove('bg-slate-800', 'border-slate-700', 'text-slate-100');
                 btn.classList.add('bg-emerald-500/20', 'border-emerald-500', 'text-emerald-400');
                 
                 const key = groupId.split('-')[0];
-                userProfile[key] = btn.getAttribute('data-value');
-                checkOnboardingComplete();
+                if (userProfile.hasOwnProperty(key)) {
+                    userProfile[key] = btn.getAttribute('data-value') || '미지정';
+                }
             });
         });
     });
 }
 
-function checkOnboardingComplete() {
-    if (userProfile.gender && userProfile.age && userProfile.purpose) {
-        startBtn.disabled = false;
-        startBtn.innerText = "BOOM! 시작하기";
-        startBtn.className = "w-full py-4 rounded-xl bg-emerald-500 text-slate-950 font-black text-base cursor-pointer hover:bg-emerald-400 active:scale-95 transition-all duration-300 shadow-xl shadow-emerald-500/20 mb-4";
-    }
+// 화면 전환 이벤트 리스너
+if (startBtn) {
+    startBtn.addEventListener('click', () => {
+        onboardingScreen.classList.add('hidden');
+        mainScreen.classList.remove('hidden');
+    });
 }
 
-startBtn.addEventListener('click', () => {
-    onboardingScreen.classList.add('hidden');
-    mainScreen.classList.remove('hidden');
-});
+if (resetProfileBtn) {
+    resetProfileBtn.addEventListener('click', () => {
+        mainScreen.classList.add('hidden');
+        onboardingScreen.classList.remove('hidden');
+    });
+}
 
-resetProfileBtn.addEventListener('click', () => {
-    mainScreen.classList.add('hidden');
-    onboardingScreen.classList.remove('hidden');
-});
-
-// 2️⃣ 자연어 장소 감지 엔진
+// 2️⃣ 자연어 장소 감지 엔진 (places.js 연계)
 function detectPlace(inputText) {
+    if (typeof SEOUL_PLACES === 'undefined') return null;
     const cleanText = inputText.replace(/\s+/g, '');
     for (const place of SEOUL_PLACES) {
         for (const keyword of place.keywords) {
@@ -64,32 +89,26 @@ function detectPlace(inputText) {
     return null;
 }
 
-// 3️⃣ 💾 [4단계 핵심] LocalStorage 집단지성 피드백 제어 함수
+// 3️⃣ LocalStorage 집단지성 피드백 데이터 저장/추출
 function saveFeedback(placeCode, feedbackText) {
-    // 기존에 저장된 피드백 리스트 가져오기 (없으면 빈 배열)
     let allFeedbacks = JSON.parse(localStorage.getItem('boom_feedbacks')) || [];
-    
-    // 새 피드백 데이터 객체 추가
     allFeedbacks.push({
         code: placeCode,
         feedback: feedbackText,
         timestamp: new Date().getTime()
     });
-    
-    // 로컬스토리지에 다시 쏙 저장
     localStorage.setItem('boom_feedbacks', JSON.stringify(allFeedbacks));
 }
 
 function getFeedbackHistory(placeCode) {
     if (!placeCode) return [];
     let allFeedbacks = JSON.parse(localStorage.getItem('boom_feedbacks')) || [];
-    // 현재 가려는 장소 코드(예: POI007)와 일치하는 과거 기록만 필터링해서 반환
     return allFeedbacks.filter(item => item.code === placeCode);
 }
 
-
-// 4️⃣ UI 렌더링 및 동적 피드백 버튼 생성
+// 4️⃣ UI 메시지 렌더링 및 동적 스크롤 제어
 function appendMessage(sender, text, isSimulated = false, detectedBadge = null, placeCode = null) {
+    if (!chatMessages) return;
     const messageWrapper = document.createElement('div');
     messageWrapper.className = sender === 'user' ? 'flex flex-col items-end gap-1' : 'flex gap-3 max-w-[85%]';
     
@@ -116,39 +135,36 @@ function appendMessage(sender, text, isSimulated = false, detectedBadge = null, 
         
         if (isSimulated) {
             typeMessage(textContainer, text, () => {
-                // 타이핑 연출이 완전히 끝나면 피드백 버튼들을 서서히 보여줍니다.
-                if (placeCode) {
-                    renderFeedbackButtons(feedbackArea, placeCode);
-                }
+                if (placeCode && feedbackArea) renderFeedbackButtons(feedbackArea, placeCode);
             });
         } else {
-            textContainer.innerText = text;
-            if (placeCode) renderFeedbackButtons(feedbackArea, placeCode);
+            if (textContainer) textContainer.innerText = text;
+            if (placeCode && feedbackArea) renderFeedbackButtons(feedbackArea, placeCode);
         }
     }
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// 타이핑 함수 확장 (끝났을 때 실행할 콜백 기능 추가)
 function typeMessage(element, text, callback = null) {
+    if (!element) return;
     element.classList.add('typing');
     let index = 0;
     function play() {
         if (index < text.length) {
             element.innerText += text[index];
             index++;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
             setTimeout(play, 12);
         } else {
             element.classList.remove('typing');
-            if (callback) callback(); // 타이핑 종료 후 피드백 버튼 노출
+            if (callback) callback();
         }
     }
     play();
 }
 
-// 칩 모양 피드백 버튼을 화면에 직접 만들어주는 함수
 function renderFeedbackButtons(container, placeCode) {
+    if (!container) return;
     container.classList.remove('hidden');
     container.innerHTML = `
         <button class="f-btn px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-rose-400 hover:border-rose-500 active:scale-95 transition-all" data-fb="생각보다 더 혼잡했음 🥵">생각보다 더 혼잡했어 🥵</button>
@@ -159,24 +175,21 @@ function renderFeedbackButtons(container, placeCode) {
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
             const feedbackText = btn.getAttribute('data-fb');
-            // 1. 로컬스토리지에 저장
             saveFeedback(placeCode, feedbackText);
-            
-            // 2. 피드백 완료 후 연출
-            container.innerHTML = `<span class="text-[10px] text-slate-500 font-medium px-1">✓ 데이터 피드백이 기록되었어! 다음 추천에 반영할게.</span>`;
+            container.innerHTML = `<span class="text-[10px] text-slate-500 font-medium px-1">✓ 실시간 체감 보고가 전송되었습니다.</span>`;
         });
     });
 }
 
-// 5️⃣ 실시간 서버 전송 로직
+// 5️⃣ 실시간 서버 데이터 전송 및 유저 로컬 시간 주입
 async function handleSend() {
+    if (!chatInput || !chatMessages) return;
     const text = chatInput.value.trim();
     if (!text) return;
     
     const foundPlace = detectPlace(text);
     let badgeText = null;
     let placeCode = null;
-    
     if (foundPlace) {
         badgeText = `${foundPlace.name} (${foundPlace.code})`;
         placeCode = foundPlace.code;
@@ -185,17 +198,24 @@ async function handleSend() {
     appendMessage('user', text, false, badgeText);
     chatInput.value = '';
     
-    // 💾 로컬스토리지에서 이 장소에 대한 과거 피드백 기록이 있는지 긁어오기
     const historyData = getFeedbackHistory(placeCode);
     
-    appendMessage('bot', "실시간 데이터와 유저 기록을 교차 분석 중이야...", false);
+    // ⏰ 유저가 질문을 던진 현재 실제 PC 시각 정보 추출
+    const now = new Date();
+    const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    const currentTimeInfo = {
+        date: now.toLocaleDateString('ko-KR'),
+        dayOfWeek: days[now.getDay()],
+        time: now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })
+    };
     
+    appendMessage('bot', "실시간 데이터 가동 및 시간 동기화 필터 가동 중... 💥", false);
     const allBotMessages = chatMessages.querySelectorAll('.chat-text');
     const loadingElement = allBotMessages[allBotMessages.length - 1];
-    loadingElement.classList.add('typing');
+    if (loadingElement) loadingElement.classList.add('typing');
 
     try {
-        // 🚀 [⚠️본인 서버 주소 입력⚠️]
+        // 🚀 본인의 실제 클라우드플레어 주소로 연동 확인 요망
         const WORKER_URL = "https://boom-gem.sh031300.workers.dev"; 
         
         const response = await fetch(WORKER_URL, {
@@ -205,30 +225,33 @@ async function handleSend() {
                 message: text,
                 place: foundPlace,
                 userProfile: userProfile,
-                history: historyData // 💥 과거 피드백 배열을 서버로 토스!
+                history: historyData,
+                currentTime: currentTimeInfo // ⏰ 실시간 시각 동시 주입
             })
         });
 
         const data = await response.json();
-        loadingElement.classList.remove('typing');
+        if (loadingElement) loadingElement.classList.remove('typing');
 
         if (data.error) {
-            loadingElement.innerHTML = `<span class="text-rose-400 font-semibold">❌ 에러:</span> ${data.error}`;
+            if (loadingElement) loadingElement.innerHTML = `<span class="text-rose-400 font-semibold">❌ 에러:</span> ${data.error}`;
             return;
         }
         
-        loadingElement.innerText = "";
-        // ★ 답변이 끝나면 버튼이 생기도록 장소 코드를 함께 넘겨줍니다.
-        appendMessage('bot', data.reply, true, null, placeCode); 
-        // 기존 임시 로딩 말풍선 엘리먼트는 불필요하므로 화면에서 삭제
-        loadingElement.closest('.flex').remove();
+        if (loadingElement) {
+            loadingElement.innerText = "";
+            appendMessage('bot', data.reply, true, null, placeCode); 
+            loadingElement.closest('.flex').remove();
+        }
 
     } catch (error) {
-        loadingElement.classList.remove('typing');
-        loadingElement.innerText = "서버와 연결하지 못했어. 주소나 인터넷 상태를 확인해줘!";
+        if (loadingElement) {
+            loadingElement.classList.remove('typing');
+            loadingElement.innerText = "서버 통신에 실패했어. 주소나 배포 상태를 검토해봐!";
+        }
     }
 }
 
-sendBtn.addEventListener('click', handleSend);
-chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
+if (sendBtn) sendBtn.addEventListener('click', handleSend);
+if (chatInput) chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
 setupOnboarding();
